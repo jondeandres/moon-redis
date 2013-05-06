@@ -1,5 +1,4 @@
-export RedisModel
-class RedisModel
+class Model
   @primary_key: "id"
   @model: nil
   @counters: {}
@@ -122,3 +121,5 @@ class RedisModel
     for attr in *@@attrs
       tbl[attr] = @[attr]
     tbl
+
+{ :Model }

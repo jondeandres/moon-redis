@@ -50,6 +50,7 @@ user.name = 'Bob'
 user\save!
 ```
 
+### Counters
 It's possible to define some counters for your Redis model objects using the `@counters` table.
 
 ```moonscript
@@ -58,7 +59,7 @@ class User extends Model
   @model: "users"
   @counters: { 'tweets' }
 ```
-### Counters
+
 Then you can increment or decrement the value of the objects' counters and get the value:
 
 ```moonscript

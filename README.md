@@ -2,23 +2,31 @@
 
 Library written in MoonScript, <http://moonscript.org>. You can create your own objects mapped to Redis structures.
 
+## Installation
+
+moon-redis module is placed in [MoonRocks](http://rocks.moonscript.org). Once you have added MoonRocks to your LuaRocks config.lua you can install it:
+
+```shell
+luarocks install moon-redis
+```
+
 ## Usage
-Actually moon-redis is not a proper moonrocks module so you need to load it manually. Ex:
+Import `Model` from `moon-redis`:
 
 ```moonscript
-dofile("./redis-moon.lua")
+import Model from require "moon-redis.model"
 ```
 
 You can configure the Redis client to use:
 ```moonscript
 redis = require('redis')
 client = redis.connect('127.0.0.1', 6379)
-RedisModel.client = client
+Model.client = client
 ```
 
-First, declare your models extending from `RedisModel`:
+First, declare your models extending from `Model`:
 ```moonscript
-class User extends RedisModel
+class User extends Model
   @model: "users"
 ```
 
@@ -26,7 +34,7 @@ The `@model` value referers to the name to use for the generated keys, ex: `user
 
 ```moonscript
 export User
-class User extends RedisModel
+class User extends Model
   @primary_key: "identifier"
 ```
 
@@ -34,7 +42,7 @@ class User extends RedisModel
 You can define some basic attributes that will be saved as a hash value for each object key.
 
 ```moonscript
-class User extends RedisModel
+class User extends Model
   @attrs: { 'name' }
 
 user = User!
@@ -45,7 +53,7 @@ user\save!
 It's possible to define some counters for your Redis model objects using the `@counters` table.
 
 ```moonscript
-class User extends RedisModel
+class User extends Model
   @attrs: { 'name' }
   @model: "users"
   @counters: { 'tweets' }
@@ -64,7 +72,7 @@ print user\tweets_count! -- 1
 Sometimes you will need to add collections to your models, you can do it in this way:
 
 ```moonscript
-class User extends RedisModel
+class User extends Model
   @attrs: { 'name' }
   @model: "users"
   @collections: { followers: -> User }

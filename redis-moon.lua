@@ -1,6 +1,3 @@
-local redis = require('redis')
-local client = redis.connect('127.0.0.1', 6379)
-local RedisModel
 do
   local _parent_0 = nil
   local _base_0 = {
@@ -8,21 +5,21 @@ do
       return self:key() .. ':' .. counter
     end,
     get_counter = function(self, counter)
-      local value = client:get(self:counter_key_for(counter))
+      local value = self.__class.client:get(self:counter_key_for(counter))
       return value or 0
     end,
     inc_counter = function(self, counter)
-      return client:incrby(self:counter_key_for(counter), 1)
+      return self.__class.client:incrby(self:counter_key_for(counter), 1)
     end,
     decr_counter = function(self, counter)
-      return client:decrby(self:counter_key_for(counter), 1)
+      return self.__class.client:decrby(self:counter_key_for(counter), 1)
     end,
     field_key = function(self, field)
       return self:key() .. ":" .. field
     end,
     collection = function(self, name)
       local collection = { }
-      local collection_ids = client:smembers(self:field_key(name))
+      local collection_ids = self.__class.client:smembers(self:field_key(name))
       local relation_class = self.__class:relation_class_for('collections', name)
       local _list_0 = collection_ids
       for _index_0 = 1, #_list_0 do
@@ -33,10 +30,10 @@ do
       return collection
     end,
     add_to_collection = function(self, collection, id)
-      return client:sadd(self:field_key(collection), id)
+      return self.__class.client:sadd(self:field_key(collection), id)
     end,
     remove_from_collection = function(self, collection, id)
-      return client:srem(self:field_key(collection), id)
+      return self.__class.client:srem(self:field_key(collection), id)
     end,
     spawn_methods = function(self)
       local __index = getmetatable(self).__index
@@ -79,7 +76,7 @@ do
         self.__class:increment_counter()
         self.id = self.__class:counter()
       end
-      return client:hmset(self:key(), self:attributes())
+      return self.__class.client:hmset(self:key(), self:attributes())
     end,
     attributes = function(self)
       local tbl = { }
@@ -127,11 +124,12 @@ do
   self.primary_key = "id"
   self.model = nil
   self.counters = { }
+  self.client = nil
   self.counter = function(self)
-    return client:get(self:counter_key())
+    return self.client:get(self:counter_key())
   end
   self.increment_counter = function(self)
-    return client:incrby(self:counter_key(), 1)
+    return self.client:incrby(self:counter_key(), 1)
   end
   self.relation_class_for = function(self, type, relation)
     return self[type][relation]()
@@ -144,7 +142,7 @@ do
     return self.model .. ":" .. self.primary_key .. ":" .. id
   end
   self.get = function(self, id)
-    local tbl = client:hgetall(self:object_key(id))
+    local tbl = self.client:hgetall(self:object_key(id))
     tbl.id = id
     return self(tbl)
   end

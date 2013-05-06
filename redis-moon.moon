@@ -1,17 +1,16 @@
-redis = require('redis')
-client = redis.connect('127.0.0.1', 6379)
-
+export RedisModel
 class RedisModel
   @primary_key: "id"
   @model: nil
   @counters: {}
+  @client: nil
 
 -- class methods
   @counter: =>
-    client\get(@counter_key!)
+    @client\get(@counter_key!)
 
   @increment_counter: =>
-    client\incrby(@counter_key!, 1)
+    @client\incrby(@counter_key!, 1)
 
   @relation_class_for: (type, relation) =>
     @[type][relation]!
@@ -24,7 +23,7 @@ class RedisModel
     @model .. ":" .. @primary_key .. ":" .. id
 
   @get: (id) =>
-    tbl = client\hgetall(@\object_key(id))
+    tbl = @client\hgetall(@\object_key(id))
     tbl.id = id
     @(tbl)
   @create: (attributes) =>
@@ -44,21 +43,21 @@ class RedisModel
     @\key! .. ':' .. counter
 
   get_counter: (counter) =>
-    value = client\get(@\counter_key_for(counter))
+    value = @@client\get(@\counter_key_for(counter))
     value or 0
 
   inc_counter: (counter) =>
-    client\incrby(@\counter_key_for(counter), 1)
+    @@client\incrby(@\counter_key_for(counter), 1)
 
   decr_counter: (counter) =>
-    client\decrby(@\counter_key_for(counter), 1)
+    @@client\decrby(@\counter_key_for(counter), 1)
 
   field_key: (field) =>
     @\key! .. ":" .. field
 
   collection: (name) =>
     collection = {}
-    collection_ids = client\smembers(@\field_key(name))
+    collection_ids = @@client\smembers(@\field_key(name))
     relation_class = @@\relation_class_for('collections', name)
 
     for id in *collection_ids
@@ -67,10 +66,10 @@ class RedisModel
     collection
 
   add_to_collection: (collection, id) =>
-    client\sadd(@\field_key(collection), id)
+    @@client\sadd(@\field_key(collection), id)
 
   remove_from_collection: (collection, id) =>
-    client\srem(@\field_key(collection), id)
+    @@client\srem(@\field_key(collection), id)
 
   spawn_methods: =>
     __index = getmetatable(@).__index
@@ -115,7 +114,7 @@ class RedisModel
     if not @id
       @@increment_counter!
       @id = @@counter!
-    client\hmset(@key!, @\attributes!)
+    @@client\hmset(@key!, @\attributes!)
 
   attributes: =>
     tbl = {}
@@ -123,4 +122,3 @@ class RedisModel
     for attr in *@@attrs
       tbl[attr] = @[attr]
     tbl
-

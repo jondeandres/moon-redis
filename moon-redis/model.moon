@@ -3,6 +3,7 @@ class Model
   @model: nil
   @counters: {}
   @client: nil
+  @collections: {}
 
 -- class methods
   @counter: =>
